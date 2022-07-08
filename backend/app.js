@@ -8,6 +8,7 @@ var sqlite3 = require('sqlite3');
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
+let graphsRouter = require('./routes/graph');
 
 let app = express();
 // Set up Global configuration access
@@ -21,7 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 let db_url = process.env.DB_URL || "data.db";
 
 
-const createTables = (newdb) => newdb.exec("", ()  => { });
+const createTables = (newdb) => newdb.exec('CREATE TABLE "muilers" ( "name" varchar ); CREATE TABLE "muilers_edge"( "from" varchar, "to" varchar, "academie" varchar, "vereining" varchar );', ()  => { });
 
 function createDatabase() {
     let newdb = new sqlite3.Database(db_url, (err) => {
@@ -31,10 +32,11 @@ function createDatabase() {
         }
         createTables(newdb);
     });
+    newdb.close();
 }
 
 const startDB = () => new sqlite3.Database(db_url, sqlite3.OPEN_READWRITE, (err) => {
-    if (err && err.code == "SQLITE_CANTOPEN") {
+    if (err && err.code === "SQLITE_CANTOPEN") {
         createDatabase();
         return;
     } else if (err) {
@@ -45,6 +47,7 @@ const startDB = () => new sqlite3.Database(db_url, sqlite3.OPEN_READWRITE, (err)
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
+app.use('/graph', graphsRouter);
+startDB();
 
 module.exports = app;
